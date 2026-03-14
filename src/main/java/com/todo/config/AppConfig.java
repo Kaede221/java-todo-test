@@ -1,31 +1,36 @@
 package com.todo.config;
 
-import com.todo.mapper.TaskMapper;
-import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import java.io.IOException;
-import java.io.InputStream;
+import javax.sql.DataSource;
 
 @Configuration
+@MapperScan("com.todo.mapper")
 public class AppConfig {
+    // 配置数据源
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
-    @Bean("sqlSession")
-    public SqlSession sqlSession() throws IOException {
-        String resource = "mybatis-config.xml";
-        InputStream inputStream = Resources.getResourceAsStream(resource);
-        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/tasks?useSSL=false");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
 
-        return sqlSessionFactory.openSession();
+        return dataSource;
     }
 
-    @Bean("taskMapper")
-    public TaskMapper taskMapper() throws IOException {
-        SqlSession _sqlSession = sqlSession();
-        return _sqlSession.getMapper(TaskMapper.class);
+    // 配置Factory
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource) {
+        SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
+
+        // 引入
+        sqlSessionFactory.setDataSource(dataSource);
+        return sqlSessionFactory;
     }
 }
